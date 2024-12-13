@@ -14,42 +14,58 @@
         <div class="carrinho-badge">
             <a href="#">
                 <i class="bi bi-cart icone-carrinho"></i>
-                <span class="contador"></span>
+                <span class="contador">3</span>
             </a>
         </div>
     </header>
 
     <main class="carrinho">
+
         <div class="carrinho-produtos">
-            <!-- aqui serão criados os produtos do storage -->
-            <div class="total">
-                <p>Total: <span class="total-compra">R$ 0,00</span></p>
-                <button class="botao-comprar">Finalizar Compra</button>
-            </div>
+            
+            <!--Aqui serão colocados os items do carrinho dinamicamente -->
+                        
+
+        </div>
+
+        <div class="total">
+            <p>Total: R$ <span class="total-compra"></span></p>
+            <button class="botao-comprar">Finalizar Compra</button>
         </div>
     </main>
 
     <script>
-        let carrinho = obterTodosProdutos();
-        let contador = document.querySelector(".contador");
-        contador.textContent = calcularTotalItens();
-        let totalCompra = document.querySelector('.total-compra');
 
-        carrinho.forEach(item => criarItemCarrinho(item));
+        let carrinho = localStorage.getItem("carrinho");
+        
+        carrinho = JSON.parse(carrinho);
+        console.log(carrinho)
 
-        atualizarTotal();
+        elementosNoCarrinho = carrinho.length;
+
+        for (let i = 0; i < elementosNoCarrinho; i++) {            
+            criarItemCarrinho(carrinho[i]);
+        }
 
         function criarItemCarrinho(itemLista) {
+            
             let itemCarrinho = document.createElement('div');
+            //itemCarrinho.classList.add = 'item-carrinho';
             itemCarrinho.classList.add('item-carrinho');
 
             let item = document.createElement('div');
+            //item.classList.add = 'item';
             item.classList.add('item');
-
+            
             let imagem = document.createElement('img');
+            //item.classList.add = 'item';
             imagem.src = "https://picsum.photos/300/500";
-            imagem.classList.add('item-img');
+            imagem.classList.add('item-img')
 
+            let remover = document.createElement('button');
+            remover.textContent = "Remover";
+            remover.classList.add('botao-remover')
+           
             let itemInfo = document.createElement('div');
             itemInfo.classList.add('item-info');
 
@@ -58,82 +74,57 @@
 
             let precoProduto = document.createElement('p');
             precoProduto.classList.add('preco');
-            precoProduto.textContent = itemLista.preco;
+            precoProduto.textContent = itemLista.preço;
 
             let quantidadeProduto = document.createElement('input');
-            quantidadeProduto.id = "quantidade";
-            quantidadeProduto.type = "number";
-            quantidadeProduto.min = 1; 
+            quantidadeProduto.id = "quantidade"
+            quantidadeProduto.type = "number"
             quantidadeProduto.value = itemLista.quantidade;
-            quantidadeProduto.addEventListener('change', () => {
-                let novaQuant = parseInt(quantidadeProduto.value);
-                if (novaQuant < 1) {
-                    novaQuant = 1;
-                }
-                itemLista.quantidade = novaQuant;
-                salvarCarrinho();
-                atualizarTotal();
-                contador.textContent = calcularTotalItens();
-                console.log(carrinho);
-            });
 
-            let botaoRemover = document.createElement('button');
-            botaoRemover.textContent = "Remover";
-            botaoRemover.classList.add('botao-remover');
-            botaoRemover.addEventListener('click', () => {
-                itemCarrinho.remove();
-                carrinho = carrinho.filter(p => p.nome !== itemLista.nome); /
-                salvarCarrinho();
-                atualizarTotal();
-                contador.textContent = calcularTotalItens();
-                console.log(carrinho);
-            });
-
+            item.appendChild(imagem)
             itemInfo.appendChild(nomeProduto);
             itemInfo.appendChild(precoProduto);
             itemInfo.appendChild(quantidadeProduto);
-
-            item.appendChild(imagem);
             item.appendChild(itemInfo);
-            itemCarrinho.appendChild(item);
-            itemCarrinho.appendChild(botaoRemover);
+            itemCarrinho.prepend(item);
 
-            let carrinhoProdutos = document.querySelector('.carrinho-produtos');
-            carrinhoProdutos.prepend(itemCarrinho);
-        }
+            let carrinho = document.querySelector('.carrinho-produtos');
+            carrinho.appendChild(itemCarrinho);
+            itemCarrinho.appendChild(remover)
 
-        function atualizarTotal() {
+            remover.addEventListener('click',()=>{
+                itemCarrinho.remove(itemCarrinho)
+
+                let carrinho = JSON.parse(localStorage.getItem('carrinho'));
+                carrinho.forEach((produto,index) => {
+                    if(produto.nome == itemLista.nome){
+                        carrinho.splice(index,1)
+                    }
+                });
+                carrinho = JSON.stringify(carrinho)
+                localStorage.setItem('carrinho', carrinho)
+            })
+
+        }//fim criar item carrinho
+
+        function atualizarTotal(){
+            let carrinho = JSON.parse(localStorage.getItem('carrinho'));
             let total = 0;
-            carrinho.forEach(produto => {
-                let preco = produto.preco.replace('R$', '').replace(',', '.');
-                let precoNum = parseFloat(preco);
-                total += produto.quantidade * precoNum;
-            });
-            totalCompra.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
-
-        function obterTodosProdutos() {
-            let carrinho = localStorage.getItem('carrinho');
-
-            if (carrinho) {
-                carrinho = JSON.parse(carrinho);
-            } else {
-                carrinho = [];
-            }
-
-            return carrinho;
-        }
-
-        function calcularTotalItens() {
-            let totalItens = 0;
             carrinho.forEach((produto) => {
-                totalItens += produto.quantidade; 
+                let preco = produto.preço;
+                preco = preco.replace('R$','')
+                preco = preco.replace(',','.')
+                let quantidade = produto.quantidade;
+                total += preco *quantidade;
+                
             });
-            return totalItens;
+            let totalCompra = document.querySelector('.total-compra')
+
+            totalCompra.textContent = total;
         }
 
-        function salvarCarrinho() {
-            localStorage.setItem('carrinho', JSON.stringify(carrinho));
-        }
+        atualizarTotal();
+
 
     </script>
 
